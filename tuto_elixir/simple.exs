@@ -29,8 +29,12 @@ defmodule PokemonTool do
     }
   end
 
+  def effectiveness(%{type1: type1, type2: type2} = pokemon) when pokemon.__struct__ == Pokemon, do: effectiveness(type1,type2)
+  def effectiveness(%{type1: type1} = pokemon) when pokemon.__struct__ == Pokemon, do: effectiveness(type1)
   def effectiveness(attackType, defenseType), do: types_chart()[defenseType][attackType]
 
+  def type_sensitivity(%{type1: type1, type2: type2} = pokemon) when pokemon.__struct__ == Pokemon, do: type_sensitivity(type1,type2)
+  def type_sensitivity(%{type1: type1} = pokemon) when pokemon.__struct__ == Pokemon, do: type_sensitivity(type1)
   def type_sensitivity(type1), do: types_chart()[type1]
   def type_sensitivity(type1, type2), do: types_chart()[type1] |> Enum.map(fn {type, coef} -> {type, coef*types_chart()[type2][type]} end)
 
@@ -40,6 +44,8 @@ defmodule PokemonTool do
   def type_weekness(type1), do: type_sensitivity(type1) |> Enum.filter(fn {_, coef} ->  coef>=2 end)
   def type_weekness(type1, type2), do: type_sensitivity(type1, type2) |> Enum.filter(fn {_, coef} ->  coef>=2 end)
 
+  def type_resistance(%{type1: type1, type2: type2} = pokemon) when pokemon.__struct__ == Pokemon, do: type_resistance(type1,type2)
+  def type_resistance(%{type1: type1} = pokemon) when pokemon.__struct__ == Pokemon, do: type_resistance(type1)
   def type_resistance(type1), do: type_sensitivity(type1) |> Enum.filter(fn {_, coef} ->  coef<1 end)
   def type_resistance(type1, type2), do: type_sensitivity(type1, type2) |> Enum.filter(fn {_, coef} ->  coef<1 end)
 end
@@ -47,7 +53,8 @@ end
 
 defmodule Main do
   def main do
-    IO.inspect(PokemonTool.type_weekness(:eau, :vol))
+    etourmi = %Pokemon{type1: :normal, type2: :vol}
+    IO.inspect(PokemonTool.type_weekness(etourmi))
   end
 end
 
