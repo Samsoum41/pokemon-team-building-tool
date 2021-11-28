@@ -23,7 +23,9 @@ defmodule PokemonTool do
       vol:         %{acier: 1  , combat: 0.5, dragon: 1  , eau: 1  , electrique: 2  , fee: 1  , feu: 1  , glace: 2  , insecte: 0.5, normal: 1  , plante: 0.5, poison: 1  , psy: 1  , roche: 2  , sol: 0  , spectre: 1  , tenebre: 1  , vol: 1  }
     }
   end
-  def strong_against(attackType, defenseType \\ nil), do: types_chart()[defenseType][attackType]
+  def effectiveness(attackType, defenseType), do: types_chart()[defenseType][attackType]
+  def type_sensitivity(type1), do: types_chart()[type1]
+  def type_sensitivity(type1, type2), do: types_chart()[type1] |> Enum.map(fn {type, coef} -> {type, coef*types_chart()[type2][type]} end)
 end
 
-IO.puts(PokemonTool.strong_against(:feu, :acier))
+IO.inspect(PokemonTool.type_sensitivity(:sol, :acier))
