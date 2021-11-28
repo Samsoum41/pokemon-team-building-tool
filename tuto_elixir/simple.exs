@@ -26,9 +26,10 @@ defmodule PokemonTool do
   def effectiveness(attackType, defenseType), do: types_chart()[defenseType][attackType]
   def type_sensitivity(type1), do: types_chart()[type1]
   def type_sensitivity(type1, type2), do: types_chart()[type1] |> Enum.map(fn {type, coef} -> {type, coef*types_chart()[type2][type]} end)
-  def type_weekness(type1), do: type_sensitivity(type1) |> Enum.filter(fn {type, coef} ->  coef>=2 end)
-  def type_weekness(type1, type2), do: type_sensitivity(type1, type2) |> Enum.filter(fn {type, coef} ->  coef>=2 end)
-  def type_resistance(type1), do: type_sensitivity(type1) |> Enum.filter(fn {type, coef} ->  coef<1 end)
-  def type_resistance(type1, type2), do: type_sensitivity(type1, type2) |> Enum.filter(fn {type, coef} ->  coef<1 end)end
+  def type_weekness(type1), do: type_sensitivity(type1) |> Enum.filter(fn {_, coef} ->  coef>=2 end)
+  def type_weekness(type1, type2), do: type_sensitivity(type1, type2) |> Enum.filter(fn {_, coef} ->  coef>=2 end)
+  def type_resistance(type1), do: type_sensitivity(type1) |> Enum.filter(fn {_, coef} ->  coef<1 end)
+  def type_resistance(type1, type2), do: type_sensitivity(type1, type2) |> Enum.filter(fn {_, coef} ->  coef<1 end)
+end
 
 IO.inspect(PokemonTool.type_resistance(:sol, :acier))
