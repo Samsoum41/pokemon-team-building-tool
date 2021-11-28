@@ -1,5 +1,10 @@
 types = {:acier, :combat, :dragon, :eau, :electrique, :fee, :feu, :glace, :insecte, :normal, :plante, :poison, :psy, :roche, :sol, :spectre, :tenebre, :vol}
 
+defmodule Pokemon do
+  @enforce_keys [:type1]
+  defstruct [:type1, :type2, :attack1, :attack2, :attack3, :attack4]
+end
+
 defmodule PokemonTool do
   defp types_chart do
     %{
@@ -23,13 +28,28 @@ defmodule PokemonTool do
       vol:         %{acier: 1  , combat: 0.5, dragon: 1  , eau: 1  , electrique: 2  , fee: 1  , feu: 1  , glace: 2  , insecte: 0.5, normal: 1  , plante: 0.5, poison: 1  , psy: 1  , roche: 2  , sol: 0  , spectre: 1  , tenebre: 1  , vol: 1  }
     }
   end
+
   def effectiveness(attackType, defenseType), do: types_chart()[defenseType][attackType]
+
   def type_sensitivity(type1), do: types_chart()[type1]
   def type_sensitivity(type1, type2), do: types_chart()[type1] |> Enum.map(fn {type, coef} -> {type, coef*types_chart()[type2][type]} end)
+
+
+  def type_weekness(%{type1: type1, type2: type2} = pokemon) when pokemon.__struct__ == Pokemon, do: type_weekness(type1,type2)
+  def type_weekness(%{type1: type1} = pokemon) when pokemon.__struct__ == Pokemon, do: type_weekness(type1)
   def type_weekness(type1), do: type_sensitivity(type1) |> Enum.filter(fn {_, coef} ->  coef>=2 end)
   def type_weekness(type1, type2), do: type_sensitivity(type1, type2) |> Enum.filter(fn {_, coef} ->  coef>=2 end)
+
   def type_resistance(type1), do: type_sensitivity(type1) |> Enum.filter(fn {_, coef} ->  coef<1 end)
   def type_resistance(type1, type2), do: type_sensitivity(type1, type2) |> Enum.filter(fn {_, coef} ->  coef<1 end)
 end
 
-IO.inspect(PokemonTool.type_resistance(:sol, :acier))
+
+defmodule Main do
+  def main do
+    IO.inspect(PokemonTool.type_weekness(:eau, :vol))
+  end
+end
+
+
+Main.main
