@@ -1,11 +1,32 @@
-types = {:acier, :combat, :dragon, :eau, :electrique, :fee, :feu, :glace, :insecte, :normal, :plante, :poison, :psy, :roche, :sol, :spectre, :tenebre, :vol}
-
 defmodule Pokemon do
   @enforce_keys [:type1]
   defstruct [:type1, :type2, :attack1, :attack2, :attack3, :attack4]
 end
 
 defmodule PokemonTool do
+  defp types do
+    [
+      :acier,
+      :combat,
+      :dragon,
+      :eau,
+      :electrique,
+      :fee,
+      :feu,
+      :glace,
+      :insecte,
+      :normal,
+      :plante,
+      :poison,
+      :psy,
+      :roche,
+      :sol,
+      :spectre,
+      :tenebre,
+      :vol
+    ]
+  end
+
   defp types_chart do
     %{
       acier:       %{acier: 0.5, combat: 2  , dragon: 0.5, eau: 1  , electrique: 1  , fee: 0.5, feu: 2  , glace: 0.5, insecte: 0.5, normal: 0.5, plante: 0.5, poison: 0  , psy: 0.5, roche: 0.5, sol: 2  , spectre: 1  , tenebre: 1  , vol: 0.5},
@@ -29,32 +50,50 @@ defmodule PokemonTool do
     }
   end
 
-  def effectiveness(%{type1: type1, type2: type2} = pokemon) when pokemon.__struct__ == Pokemon, do: effectiveness(type1,type2)
-  def effectiveness(%{type1: type1} = pokemon) when pokemon.__struct__ == Pokemon, do: effectiveness(type1)
-  def effectiveness(attackType, defenseType), do: types_chart()[defenseType][attackType]
+  def max(a,b)                                                 when a>b,                           do: a
+  def max(_,b),                                                                                    do: b
+
+  def effectiveness(%{type1: type1, type2: type2} = pokemon)    when pokemon.__struct__ == Pokemon, do: effectiveness(type1,type2)
+  def effectiveness(%{type1: type1} = pokemon)                  when pokemon.__struct__ == Pokemon, do: effectiveness(type1)
+  def effectiveness(attackType, defenseType),                                                       do: types_chart()[defenseType][attackType]
 
   def type_sensitivity(%{type1: type1, type2: type2} = pokemon) when pokemon.__struct__ == Pokemon, do: type_sensitivity(type1,type2)
-  def type_sensitivity(%{type1: type1} = pokemon) when pokemon.__struct__ == Pokemon, do: type_sensitivity(type1)
-  def type_sensitivity(type1), do: types_chart()[type1]
-  def type_sensitivity(type1, type2), do: types_chart()[type1] |> Enum.map(fn {type, coef} -> {type, coef*types_chart()[type2][type]} end)
+  def type_sensitivity(%{type1: type1} = pokemon)               when pokemon.__struct__ == Pokemon, do: type_sensitivity(type1)
+  def type_sensitivity(type1),                                                                      do: types_chart()[type1]
+  def type_sensitivity(type1, type2),                                                               do: types_chart()[type1] |> Enum.map(fn {type, coef} -> {type, coef*types_chart()[type2][type]} end)
 
+  def strong_against(%{type1: type1, type2: type2} = pokemon)   when pokemon.__struct__ == Pokemon, do: type_weekness(type1,type2)
+  def strong_against(%{type1: type1} = pokemon)                 when pokemon.__struct__ == Pokemon, do: type_weekness(type1)
+  def strong_against(type1)                                                                         do
+    weakTypes = types() |> Enum.filter(fn defenseType ->  effectiveness(type1, defenseType)>=2 end)
+    coefs = weakTypes|> Enum.map(Enum.max(&(effectiveness(type1, &1))))
+    Enum.zip(weakTypes, coefs)
+  end
+  def strong_against(type1, type2)                                                                  do
+    weakTypes = types()
+      |> Enum.filter(fn defenseType ->  effectiveness(type1, defenseType)>=2 or effectiveness(type2, defenseType)>=2 end)
+    coefs = weakTypes
+      |> Enum.map(&(PokemonTool.max(effectiveness(type1, &1), effectiveness(type2, &1))))
+    Enum.zip(weakTypes, coefs)
+  end
 
-  def type_weekness(%{type1: type1, type2: type2} = pokemon) when pokemon.__struct__ == Pokemon, do: type_weekness(type1,type2)
-  def type_weekness(%{type1: type1} = pokemon) when pokemon.__struct__ == Pokemon, do: type_weekness(type1)
-  def type_weekness(type1), do: type_sensitivity(type1) |> Enum.filter(fn {_, coef} ->  coef>=2 end)
-  def type_weekness(type1, type2), do: type_sensitivity(type1, type2) |> Enum.filter(fn {_, coef} ->  coef>=2 end)
+  def type_weekness(%{type1: type1, type2: type2} = pokemon)    when pokemon.__struct__ == Pokemon, do: type_weekness(type1,type2)
+  def type_weekness(%{type1: type1} = pokemon)                  when pokemon.__struct__ == Pokemon, do: type_weekness(type1)
+  def type_weekness(type1),                                                                         do: type_sensitivity(type1) |> Enum.filter(fn {_, coef} ->  coef>=2 end)
+  def type_weekness(type1, type2),                                                                  do: type_sensitivity(type1, type2) |> Enum.filter(fn {_, coef} ->  coef>=2 end)
 
-  def type_resistance(%{type1: type1, type2: type2} = pokemon) when pokemon.__struct__ == Pokemon, do: type_resistance(type1,type2)
-  def type_resistance(%{type1: type1} = pokemon) when pokemon.__struct__ == Pokemon, do: type_resistance(type1)
-  def type_resistance(type1), do: type_sensitivity(type1) |> Enum.filter(fn {_, coef} ->  coef<1 end)
-  def type_resistance(type1, type2), do: type_sensitivity(type1, type2) |> Enum.filter(fn {_, coef} ->  coef<1 end)
+  def type_resistance(%{type1: type1, type2: type2} = pokemon)  when pokemon.__struct__ == Pokemon, do: type_resistance(type1,type2)
+  def type_resistance(%{type1: type1} = pokemon)                when pokemon.__struct__ == Pokemon, do: type_resistance(type1)
+  def type_resistance(type1),                                                                       do: type_sensitivity(type1) |> Enum.filter(fn {_, coef} ->  coef<1 end)
+  def type_resistance(type1, type2),                                                                do: type_sensitivity(type1, type2) |> Enum.filter(fn {_, coef} ->  coef<1 end)
+
 end
 
 
 defmodule Main do
   def main do
     etourmi = %Pokemon{type1: :normal, type2: :vol}
-    IO.inspect(PokemonTool.type_weekness(etourmi))
+    IO.inspect(PokemonTool.strong_against(:eau,:vol))
   end
 end
 
