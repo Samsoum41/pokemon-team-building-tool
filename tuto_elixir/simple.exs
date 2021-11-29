@@ -62,8 +62,8 @@ defmodule PokemonTool do
   def type_sensitivity(type1),                                                                      do: types_chart()[type1]
   def type_sensitivity(type1, type2),                                                               do: types_chart()[type1] |> Enum.map(fn {type, coef} -> {type, coef*types_chart()[type2][type]} end)
 
-  def strong_against(%{type1: type1, type2: type2} = pokemon)   when pokemon.__struct__ == Pokemon, do: type_weekness(type1,type2)
-  def strong_against(%{type1: type1} = pokemon)                 when pokemon.__struct__ == Pokemon, do: type_weekness(type1)
+  def strong_against(%{type1: type1, type2: type2} = pokemon)   when pokemon.__struct__ == Pokemon, do: strong_against(type1,type2)
+  def strong_against(%{type1: type1} = pokemon)                 when pokemon.__struct__ == Pokemon, do: strong_against(type1)
   def strong_against(type1)                                                                         do
     weakTypes = types() |> Enum.filter(fn defenseType ->  effectiveness(type1, defenseType)>=2 end)
     coefs = weakTypes|> Enum.map(Enum.max(&(effectiveness(type1, &1))))
@@ -93,7 +93,7 @@ end
 defmodule Main do
   def main do
     etourmi = %Pokemon{type1: :normal, type2: :vol}
-    IO.inspect(PokemonTool.strong_against(:eau,:vol))
+    IO.inspect(PokemonTool.strong_against(etourmi))
   end
 end
 
