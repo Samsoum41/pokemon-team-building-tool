@@ -1,6 +1,6 @@
 defmodule Pokemon do
-  @enforce_keys [:type1]
-  defstruct [:type1, :type2, :attack1, :attack2, :attack3, :attack4]
+  @enforce_keys [:name, :type1]
+  defstruct [:name, :type1, :type2, :attack1, :attack2, :attack3, :attack4]
 end
 
 defmodule PokemonTool do
@@ -65,9 +65,12 @@ defmodule PokemonTool do
   def strong_against(%{type1: type1, type2: type2} = pokemon)   when pokemon.__struct__ == Pokemon, do: strong_against(type1,type2)
   def strong_against(%{type1: type1} = pokemon)                 when pokemon.__struct__ == Pokemon, do: strong_against(type1)
   def strong_against(type1)                                                                         do
-    weakTypes = types() |> Enum.filter(fn defenseType ->  effectiveness(type1, defenseType)>=2 end)
-    coefs = weakTypes|> Enum.map(Enum.max(&(effectiveness(type1, &1))))
+    weakTypes = types()
+      |> Enum.filter(fn defenseType ->  effectiveness(type1, defenseType)>=2 end)
+    coefs = weakTypes
+      |> Enum.map(&(effectiveness(type1, &1)))
     Enum.zip(weakTypes, coefs)
+      |> Enum.into(%{})
   end
   def strong_against(type1, type2)                                                                  do
     weakTypes = types()
@@ -75,6 +78,7 @@ defmodule PokemonTool do
     coefs = weakTypes
       |> Enum.map(&(PokemonTool.max(effectiveness(type1, &1), effectiveness(type2, &1))))
     Enum.zip(weakTypes, coefs)
+      |> Enum.into(%{})
   end
 
   def type_weekness(%{type1: type1, type2: type2} = pokemon)    when pokemon.__struct__ == Pokemon, do: type_weekness(type1,type2)
@@ -87,13 +91,30 @@ defmodule PokemonTool do
   def type_resistance(type1),                                                                       do: type_sensitivity(type1) |> Enum.filter(fn {_, coef} ->  coef<1 end)
   def type_resistance(type1, type2),                                                                do: type_sensitivity(type1, type2) |> Enum.filter(fn {_, coef} ->  coef<1 end)
 
+  def team_weaknesses(team) do
+    strong_types = team
+      |> Enum.map(fn pokemon -> strong_against(pokemon) end)
+      |> Enum.reduce(%{}, fn dic, acc -> Map.merge(dic, acc) end)
+      |> IO.inspect()
+    types()
+      |> Enum.filter(&(!Map.has_key?(strong_types, &1)))
+      |> IO.inspect()
+
+  end
 end
 
 
 defmodule Main do
   def main do
-    etourmi = %Pokemon{type1: :normal, type2: :vol}
-    IO.inspect(PokemonTool.strong_against(etourmi))
+    pokemon1 = %Pokemon{name: "Etouraptor", type1: :normal, type2: :vol}
+    pokemon2 = %Pokemon{name: "Leviator", type1: :eau, type2: :vol}
+    pokemon3 = %Pokemon{name: "Dracaufeu", type1: :feu, type2: :vol}
+    pokemon4 = %Pokemon{name: "Tortank", type1: :eau}
+    pokemon5 = %Pokemon{name: "Ronflex", type1: :normal}
+    pokemon6 = %Pokemon{name: "Roserade", type1: :plante, type2: :poison}
+
+    equipe = [pokemon1, pokemon2, pokemon3, pokemon4, pokemon5, pokemon6]
+    PokemonTool.team_weaknesses([pokemon1])
   end
 end
 
