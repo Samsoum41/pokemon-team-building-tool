@@ -82,19 +82,18 @@ defmodule PokemonTool do
   end
 
   def type_weekness(%{type1: type1, type2: type2} = pokemon)    when pokemon.__struct__ == Pokemon, do: type_weekness(type1,type2)
-  def type_weekness(%{type1: type1} = pokemon)                  when pokemon.__struct__ == Pokemon, do: type_weekness(type1)
+  def type_weekness(%Pokemon{} = pokemon)                  when pokemon.type2 != nil, do: IO.inspect(type_weekness(type1))
   def type_weekness(type1),                                                                         do: type_sensitivity(type1) |> Enum.filter(fn {_, coef} ->  coef>=2 end)
   def type_weekness(type1, type2),                                                                  do: type_sensitivity(type1, type2) |> Enum.filter(fn {_, coef} ->  coef>=2 end)
 
-  def type_resistance(%{type1: type1, type2: type2} = pokemon), do: type_resistance(type1,type2)
-  def type_resistance(%{type1: type1} = pokemon)              , do: type_resistance(type1)
+  def type_resistance(%{type1: type1, type2: type2} = pokemon)  when pokemon.__struct__ == Pokemon, do: type_resistance(type1,type2)
+  def type_resistance(%{type1: type1} = pokemon)                when pokemon.__struct__ == Pokemon, do: type_resistance(type1)
   def type_resistance(type1),                                                                       do: type_sensitivity(type1) |> Enum.filter(fn {_, coef} ->  coef<1 end)
   def type_resistance(type1, type2),                                                                do: type_sensitivity(type1, type2) |> Enum.filter(fn {_, coef} ->  coef<1 end)
 
   def team_weaknesses(team) do
     strong_types = team
       |> Enum.map(fn pokemon -> strong_against(pokemon) end)
-      |> IO.inspect()
       |> Enum.reduce(%{}, fn dic, acc -> Map.merge(dic, acc) end)
       |> IO.inspect()
     types()
@@ -115,8 +114,8 @@ defmodule Main do
     pokemon6 = %Pokemon{name: "Roserade", type1: :plante, type2: :poison}
 
     equipe = [pokemon1, pokemon2, pokemon3, pokemon4, pokemon5, pokemon6]
-    PokemonTool.team_weaknesses([pokemon1])
-    IO.inspect(strong_against(pokemon1))
+    PokemonTool.type_weekness(pokemon4)
+    #PokemonTool.team_weaknesses([pokemon4])
   end
 end
 
